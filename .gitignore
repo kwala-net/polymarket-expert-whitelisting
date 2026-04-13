@@ -1,0 +1,32 @@
+# ─── Common ───────────────────────────────────────────────────────────────────
+.DS_Store
+*.pem
+*.tsbuildinfo
+
+# ─── Environment / secrets (never commit) ─────────────────────────────────────
+.env
+.env*.local
+
+# ─── Frontend (Next.js) ───────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/.yarn/install-state.gz
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/coverage/
+frontend/.vercel/
+frontend/next-env.d.ts
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Contracts (Foundry) ──────────────────────────────────────────────────────
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# Foundry dependency libs are checked in via git submodules; ignore nothing else

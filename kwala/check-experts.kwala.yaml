@@ -1,0 +1,37 @@
+# Kwala Workflow: Polymarket Expert Checker
+#
+# This workflow runs every 15 minutes and calls the /api/checkexpertise
+# endpoint on the deployed frontend. The endpoint self-fetches the list
+# of registered users from the smart contract (no payload needed), checks
+# each user's Polymarket trading history, and mints an Expert NFT for
+# any user who qualifies.
+#
+# Deploy via: kwala deploy check-experts.kwala.yaml
+# Docs: https://kwala.network/docs
+
+name: polymarket-expert-checker
+description: >
+  Periodically checks each registered Polymarket user's closed-position
+  history and mints an ERC-721 Expert badge for qualifying users.
+
+trigger:
+  type: cron
+  schedule: "*/15 * * * *"   # every 15 minutes
+
+actions:
+  - name: check-and-mint
+    type: http
+    method: POST
+    url: "${CHECKEXPERTISE_URL}"   # set this in your Kwala environment variables
+    headers:
+      Content-Type: "application/json"
+    body: "{}"
+    # Empty body → contract-fetch mode: the backend reads the registered
+    # user list directly from the smart contract via getRegistered().
+    #
+    # To target a specific set of proxy addresses instead, supply:
+    #   body: '{"user_ids":["0xabc...","0xdef..."]}'
+
+# Environment variables to configure in the Kwala dashboard:
+#   CHECKEXPERTISE_URL  – Full URL of your deployed endpoint, e.g.
+#                         https://your-app.vercel.app/api/checkexpertise

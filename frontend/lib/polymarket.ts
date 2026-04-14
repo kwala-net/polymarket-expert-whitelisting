@@ -68,6 +68,7 @@ export async function getClosedPositions(
   const url = new URL(
     "https://data-api.polymarket.com/closed-positions"
   );
+  url.searchParams.set("title", "Will Leeds United FC win on 2026-04-13?");
   url.searchParams.set("limit", "10");
   url.searchParams.set("sortBy", "REALIZEDPNL");
   url.searchParams.set("sortDirection", "DESC");

@@ -115,7 +115,10 @@ export async function getClosedPositions(
         hitNonPositive = true;
         break;
       }
-      if (matchFootballQuestion(position.title)) {
+      if (
+        position.eventSlug?.startsWith("epl-") &&
+        matchFootballQuestion(position.title)
+      ) {
         footballPositions.push(position);
       }
     }

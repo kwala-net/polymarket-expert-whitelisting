@@ -146,13 +146,7 @@ Called by the Kwala cron workflow (or manually for testing).
 
 ## 3. Kwala workflow
 
-Edit `kwala/check-experts.kwala.yaml` and set the `CHECKEXPERTISE_URL` environment
-variable in your Kwala project to your deployed endpoint URL.
-
-```bash
-# Install Kwala CLI (see https://kwala.network/docs)
-kwala deploy kwala/check-experts.kwala.yaml
-```
+Edit `kwala/check-experts.kwala.yaml` and deploy the Kwala workflow.
 
 The workflow fires every 15 minutes and POSTs to `/api/checkexpertise` with an empty
 body, triggering the contract-fetch mode.

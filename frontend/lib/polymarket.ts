@@ -57,33 +57,72 @@ export interface ClosedPosition {
   timestamp: number;
 }
 
+function matchFootballQuestion(str: string) {
+  const winRegex = /^Will (.+?) win on (\d{4}-\d{2}-\d{2})\?$/;
+  const drawRegex = /^Will (.+?) vs\. (.+?) end in a draw\?$/;
+
+  const winMatch = str.match(winRegex);
+  if (winMatch) {
+    return { type: "win", team: winMatch[1], date: winMatch[2] };
+  }
+
+  const drawMatch = str.match(drawRegex);
+  if (drawMatch) {
+    return { type: "draw", team1: drawMatch[1], team2: drawMatch[2] };
+  }
+
+  return null;
+}
+
+const PAGE_SIZE = 50;
+
 /**
- * Fetch the top 10 closed positions (by realized PnL) for a proxyWallet.
- * Returns an empty array when the user has no closed positions.
- * A non-empty array means the user qualifies as an "expert".
+ * Fetch all closed positions with positive realized PnL for a proxyWallet,
+ * paginating until a page contains a non-positive PnL entry or returns empty.
+ * Then filters to only football match questions and returns those.
+ * A non-empty result means the user qualifies as an "expert".
  */
 export async function getClosedPositions(
   proxyWallet: string
 ): Promise<ClosedPosition[]> {
-  const url = new URL(
-    "https://data-api.polymarket.com/closed-positions"
-  );
-  url.searchParams.set("title", "Will Leeds United FC win on 2026-04-13?");
-  url.searchParams.set("limit", "10");
-  url.searchParams.set("sortBy", "REALIZEDPNL");
-  url.searchParams.set("sortDirection", "DESC");
-  url.searchParams.set("user", proxyWallet);
+  const footballPositions: ClosedPosition[] = [];
+  let offset = 0;
 
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  while (true) {
+    const url = new URL("https://data-api.polymarket.com/closed-positions");
+    url.searchParams.set("limit", String(PAGE_SIZE));
+    url.searchParams.set("sortBy", "REALIZEDPNL");
+    url.searchParams.set("sortDirection", "DESC");
+    url.searchParams.set("user", proxyWallet);
+    url.searchParams.set("offset", String(offset));
 
-  if (!res.ok) {
-    throw new Error(
-      `data-api responded ${res.status} for proxyWallet ${proxyWallet}`
-    );
+    const res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `data-api responded ${res.status} for proxyWallet ${proxyWallet}`
+      );
+    }
+
+    const page: ClosedPosition[] = await res.json();
+    if (!Array.isArray(page) || page.length === 0) break;
+
+    let hitNonPositive = false;
+    for (const position of page) {
+      if (position.realizedPnl <= 0) {
+        hitNonPositive = true;
+        break;
+      }
+      if (matchFootballQuestion(position.title)) {
+        footballPositions.push(position);
+      }
+    }
+
+    if (hitNonPositive || page.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
   }
 
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  return footballPositions;
 }

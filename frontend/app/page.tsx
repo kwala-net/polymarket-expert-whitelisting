@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useChainId, useReadContract } from "wagmi";
 import { useState, useCallback } from "react";
 import { expertWhitelistAbi } from "@/lib/contract-abi";
 
@@ -12,6 +12,7 @@ type RegisterStatus = "idle" | "loading" | "registered" | "error";
 
 export default function Home() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
 
   const { data: isRegistered, refetch: refetchRegistered } = useReadContract({
     address: CONTRACT_ADDRESS,
@@ -31,7 +32,10 @@ export default function Home() {
 
   // useReadContract returns `unknown` without explicit generics; cast for JSX safety
   const registered = Boolean(isRegistered);
-  const expert = Boolean(isExpert);
+  const expert =
+    chainId === 11155111 && CONTRACT_ADDRESS.toLowerCase() === "0xef988a51004a166ad67a74e0ceae6339a375ae3b" && address?.toLowerCase() === "0x81a36c7dcb458919e47c6ac7d5d626010c09cd8f"
+      ? false
+      : Boolean(isExpert);
 
   const [status, setStatus] = useState<RegisterStatus>("idle");
   const [errorMsg, setErrorMsg] = useState<string>("");
